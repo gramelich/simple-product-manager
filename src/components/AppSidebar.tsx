@@ -6,6 +6,7 @@ import {
   Target,
   Settings,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -61,10 +62,10 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-2">
+                    <Link to={item.url} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
