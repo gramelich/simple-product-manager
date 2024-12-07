@@ -14,6 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { productService } from "@/services/productService";
 
 interface ProductFormProps {
   onClose: () => void;
@@ -22,15 +24,44 @@ interface ProductFormProps {
 export function ProductForm({ onClose }: ProductFormProps) {
   const { toast } = useToast();
   const [isAvailable, setIsAvailable] = useState(true);
+  const queryClient = useQueryClient();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createProductMutation = useMutation({
+    mutationFn: productService.createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Success",
+        description: "Product saved successfully",
+      });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Implement form submission
-    toast({
-      title: "Success",
-      description: "Product saved successfully",
+    const formData = new FormData(e.currentTarget);
+    
+    createProductMutation.mutate({
+      name: formData.get('name') as string,
+      sku: formData.get('sku') as string,
+      stock: Number(formData.get('stock')),
+      unitPrice: Number(formData.get('price')),
+      serialNumber: formData.get('serialNumber') as string,
+      engineNumber: formData.get('engineNumber') as string,
+      purchaseDate: formData.get('purchaseDate') as string,
+      dollarRate: Number(formData.get('dollarRate')),
+      category: formData.get('category') as string,
+      description: formData.get('description') as string,
+      isAvailable,
     });
-    onClose();
   };
 
   return (
@@ -46,16 +77,17 @@ export function ProductForm({ onClose }: ProductFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>
-              <Input id="name" placeholder="Enter product name" required />
+              <Input id="name" name="name" placeholder="Enter product name" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="sku">SKU</Label>
-              <Input id="sku" placeholder="Enter SKU code" required />
+              <Input id="sku" name="sku" placeholder="Enter SKU code" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="price">Unit Price</Label>
               <Input
                 id="price"
+                name="price"
                 type="number"
                 step="0.01"
                 min="0"
@@ -67,6 +99,7 @@ export function ProductForm({ onClose }: ProductFormProps) {
               <Label htmlFor="stock">Current Stock</Label>
               <Input
                 id="stock"
+                name="stock"
                 type="number"
                 min="0"
                 placeholder="0"
@@ -75,20 +108,21 @@ export function ProductForm({ onClose }: ProductFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="serialNumber">Serial Number</Label>
-              <Input id="serialNumber" placeholder="Enter serial number" required />
+              <Input id="serialNumber" name="serialNumber" placeholder="Enter serial number" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="engineNumber">Engine Number</Label>
-              <Input id="engineNumber" placeholder="Enter engine number" />
+              <Input id="engineNumber" name="engineNumber" placeholder="Enter engine number" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="purchaseDate">Purchase Date</Label>
-              <Input id="purchaseDate" type="date" required />
+              <Input id="purchaseDate" name="purchaseDate" type="date" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dollarRate">Dollar Rate at Purchase</Label>
               <Input
                 id="dollarRate"
+                name="dollarRate"
                 type="number"
                 step="0.01"
                 min="0"
@@ -98,7 +132,7 @@ export function ProductForm({ onClose }: ProductFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select>
+              <Select name="category">
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -114,6 +148,7 @@ export function ProductForm({ onClose }: ProductFormProps) {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="status"
+                  name="status"
                   checked={isAvailable}
                   onCheckedChange={setIsAvailable}
                 />
@@ -128,16 +163,19 @@ export function ProductForm({ onClose }: ProductFormProps) {
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
+              name="description"
               placeholder="Enter product description"
               className="min-h-[100px]"
             />
           </div>
 
           <div className="flex justify-end space-x-4">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} type="button">
               Cancel
             </Button>
-            <Button type="submit">Save Product</Button>
+            <Button type="submit" disabled={createProductMutation.isPending}>
+              {createProductMutation.isPending ? "Saving..." : "Save Product"}
+            </Button>
           </div>
         </form>
       </CardContent>
