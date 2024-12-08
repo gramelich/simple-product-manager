@@ -6,16 +6,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
 import { ShoppingCart, Plus, Search } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Sales() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+  
+  const form = useForm({
+    defaultValues: {
+      product: "",
+      quantity: "",
+      price: "",
+      customer: "",
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    console.log(data);
+    toast({
+      title: "Venda registrada com sucesso!",
+      description: "A nova venda foi adicionada ao sistema.",
+    });
+    setIsDialogOpen(false);
+    form.reset();
+  };
 
   return (
     <SidebarProvider>
@@ -35,7 +66,7 @@ export default function Sales() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button>
+                <Button onClick={() => setIsDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Venda
                 </Button>
@@ -57,9 +88,74 @@ export default function Sales() {
                   </p>
                 </CardContent>
               </Card>
-
-              {/* Adicione mais cards de métricas aqui */}
             </div>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Nova Venda</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="product"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Produto</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Nome do produto" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="quantity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantidade</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" placeholder="0" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preço</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="customer"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cliente</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Nome do cliente" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="submit">Salvar</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
 
             <Card>
               <CardHeader>

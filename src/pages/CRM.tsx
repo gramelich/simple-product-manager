@@ -7,9 +7,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartBar, Users, Target, Plus, Search } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function CRM() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const form = useForm({
+    defaultValues: {
+      company: "",
+      contact: "",
+      value: "",
+      stage: "",
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    console.log(data);
+    toast({
+      title: "Oportunidade registrada com sucesso!",
+      description: "A nova oportunidade foi adicionada ao sistema.",
+    });
+    setIsDialogOpen(false);
+    form.reset();
+  };
 
   return (
     <SidebarProvider>
@@ -29,7 +67,7 @@ export default function CRM() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button>
+                <Button onClick={() => setIsDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Oportunidade
                 </Button>
@@ -82,6 +120,73 @@ export default function CRM() {
                 </CardContent>
               </Card>
             </div>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Nova Oportunidade</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="company"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Empresa</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Nome da empresa" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="contact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contato</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Nome do contato" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="value"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valor</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" step="0.01" placeholder="0.00" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="stage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estágio</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Ex: Prospecção, Negociação" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="submit">Salvar</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
 
             <Tabs defaultValue="pipeline" className="w-full">
               <TabsList>
