@@ -1,17 +1,40 @@
+import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChartBar, Users, Target } from "lucide-react";
+import { ChartBar, Users, Target, Plus, Search } from "lucide-react";
 
 export default function CRM() {
+  const [searchTerm, setSearchTerm] = useState("");
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex-1 p-4 md:p-8">
           <div className="space-y-8">
-            <h1 className="text-3xl font-bold">CRM</h1>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h1 className="text-3xl font-bold">CRM</h1>
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <div className="relative flex-1 md:flex-none">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar oportunidades..." 
+                    className="pl-8 w-full md:w-[300px]" 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Oportunidade
+                </Button>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
@@ -70,7 +93,7 @@ export default function CRM() {
                 <Card>
                   <CardContent className="pt-6">
                     <p className="text-muted-foreground">
-                      Conteúdo do Pipeline de Vendas será implementado aqui.
+                      Implementar pipeline de vendas aqui
                     </p>
                   </CardContent>
                 </Card>
@@ -79,7 +102,7 @@ export default function CRM() {
                 <Card>
                   <CardContent className="pt-6">
                     <p className="text-muted-foreground">
-                      Conteúdo das Atividades será implementado aqui.
+                      Implementar lista de atividades aqui
                     </p>
                   </CardContent>
                 </Card>
@@ -88,7 +111,7 @@ export default function CRM() {
                 <Card>
                   <CardContent className="pt-6">
                     <p className="text-muted-foreground">
-                      Conteúdo das Campanhas será implementado aqui.
+                      Implementar lista de campanhas aqui
                     </p>
                   </CardContent>
                 </Card>

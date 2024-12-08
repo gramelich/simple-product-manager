@@ -2,19 +2,10 @@ import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Search, UserPlus, Edit, Trash, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { CustomerDialog } from "@/components/customers/CustomerDialog";
 import { CustomerFilter } from "@/components/customers/CustomerFilter";
+import { CustomerHeader } from "@/components/customers/CustomerHeader";
+import { CustomerTable } from "@/components/customers/CustomerTable";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Customer {
@@ -133,92 +124,23 @@ export default function Customers() {
         <AppSidebar />
         <main className="flex-1 p-4 md:p-8">
           <div className="space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h1 className="text-3xl font-bold">Clientes</h1>
-              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                <div className="relative flex-1 md:flex-none">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Buscar clientes..." 
-                    className="pl-8 w-full md:w-[300px]" 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsFilterOpen(true)}
-                >
-                  <Filter className="h-4 w-4" />
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setSelectedCustomer(null);
-                    setIsDialogOpen(true);
-                  }}
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Novo Cliente
-                </Button>
-              </div>
-            </div>
+            <CustomerHeader 
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              onFilterClick={() => setIsFilterOpen(true)}
+              onNewCustomerClick={() => {
+                setSelectedCustomer(null);
+                setIsDialogOpen(true);
+              }}
+            />
 
             <Card>
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead className="hidden md:table-cell">Email</TableHead>
-                      <TableHead className="hidden md:table-cell">Telefone</TableHead>
-                      <TableHead className="hidden md:table-cell">Categoria</TableHead>
-                      <TableHead className="hidden md:table-cell">Cidade/Estado</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCustomers.map((customer) => (
-                      <TableRow key={customer.id}>
-                        <TableCell className="font-medium">{customer.name}</TableCell>
-                        <TableCell className="hidden md:table-cell">{customer.email}</TableCell>
-                        <TableCell className="hidden md:table-cell">{customer.phone}</TableCell>
-                        <TableCell className="hidden md:table-cell">{customer.category}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {customer.address.city}/{customer.address.state}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(customer)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(customer.id)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {filteredCustomers.length === 0 && (
-                      <TableRow>
-                        <TableCell 
-                          colSpan={6} 
-                          className="text-center py-8 text-muted-foreground"
-                        >
-                          Nenhum cliente encontrado
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                <CustomerTable 
+                  customers={filteredCustomers}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               </CardContent>
             </Card>
           </div>
