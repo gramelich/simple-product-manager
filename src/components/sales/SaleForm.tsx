@@ -63,7 +63,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
     createSaleMutation.mutate({
       product_id: selectedProduct,
       quantity: Number(quantity),
-      price: product.unitPrice,
+      price: product.unit_price,
       customer,
       tenant_id: tenant.id
     });
