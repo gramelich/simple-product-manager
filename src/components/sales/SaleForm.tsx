@@ -37,14 +37,14 @@ export function SaleForm({ onClose }: SaleFormProps) {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
-        title: "Success",
-        description: "Sale registered successfully",
+        title: "Sucesso",
+        description: "Venda registrada com sucesso",
       });
       onClose();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });

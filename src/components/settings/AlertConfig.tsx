@@ -10,6 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Info } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -47,78 +53,99 @@ export function AlertConfig() {
       triggerOn: 'created'
     });
     toast({
-      title: "Success",
-      description: "Alert configuration added successfully",
+      title: "Sucesso",
+      description: "Configuração de alerta adicionada com sucesso",
     });
   };
 
   const handleDeleteAlert = (id: string) => {
     setAlerts(alerts.filter(alert => alert.id !== id));
     toast({
-      title: "Success",
-      description: "Alert configuration deleted successfully",
+      title: "Sucesso",
+      description: "Configuração de alerta removida com sucesso",
     });
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Alert Configurations</CardTitle>
+        <CardTitle>Configurações de Alertas</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Alert Type</Label>
+            <Label>Tipo de Alerta</Label>
             <Select
               value={newAlert.type}
               onValueChange={(value) => setNewAlert({ ...newAlert, type: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select alert type" />
+                <SelectValue placeholder="Selecione o tipo de alerta" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="new_lead">New Lead</SelectItem>
-                <SelectItem value="new_sale">New Sale</SelectItem>
-                <SelectItem value="low_stock">Low Stock</SelectItem>
+                <SelectItem value="new_lead">Novo Lead</SelectItem>
+                <SelectItem value="new_sale">Nova Venda</SelectItem>
+                <SelectItem value="low_stock">Estoque Baixo</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="space-y-2">
-            <Label>Message Template</Label>
+            <div className="flex items-center space-x-2">
+              <Label>Modelo da Mensagem</Label>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Info className="h-4 w-4" />
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Variáveis Disponíveis:</h4>
+                    <ul className="text-sm space-y-1">
+                      <li><code>{"{nome_lead}"}</code> - Nome do lead/cliente</li>
+                      <li><code>{"{data}"}</code> - Data do evento</li>
+                      <li><code>{"{produto}"}</code> - Nome do produto</li>
+                      <li><code>{"{quantidade}"}</code> - Quantidade vendida/disponível</li>
+                      <li><code>{"{valor}"}</code> - Valor da venda</li>
+                    </ul>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
             <Input
               value={newAlert.template}
               onChange={(e) => setNewAlert({ ...newAlert, template: e.target.value })}
-              placeholder="Use {lead_name}, {date}, {product} as variables"
+              placeholder="Ex: Novo lead: {nome_lead} - Produto: {produto}"
             />
           </div>
           
           <div className="space-y-2">
-            <Label>Schedule (cron format)</Label>
+            <Label>Agendamento (formato cron)</Label>
             <Input
               value={newAlert.schedule}
               onChange={(e) => setNewAlert({ ...newAlert, schedule: e.target.value })}
-              placeholder="*/15 * * * * (every 15 minutes)"
+              placeholder="*/15 * * * * (a cada 15 minutos)"
             />
           </div>
           
           <div className="space-y-2">
-            <Label>Trigger On</Label>
+            <Label>Disparar Quando</Label>
             <Select
               value={newAlert.triggerOn}
               onValueChange={(value: 'created' | 'sold') => setNewAlert({ ...newAlert, triggerOn: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select trigger" />
+                <SelectValue placeholder="Selecione o gatilho" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="created">When Created</SelectItem>
-                <SelectItem value="sold">When Sold</SelectItem>
+                <SelectItem value="created">Quando Criado</SelectItem>
+                <SelectItem value="sold">Quando Vendido</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <Button onClick={handleAddAlert}>Add Alert Configuration</Button>
+          <Button onClick={handleAddAlert}>Adicionar Configuração de Alerta</Button>
         </div>
 
         <div className="space-y-4">
@@ -128,7 +155,7 @@ export function AlertConfig() {
                 <div>
                   <p className="font-medium">{alert.type}</p>
                   <p className="text-sm text-muted-foreground">{alert.template}</p>
-                  <p className="text-sm text-muted-foreground">Schedule: {alert.schedule}</p>
+                  <p className="text-sm text-muted-foreground">Agendamento: {alert.schedule}</p>
                 </div>
                 <div className="space-x-2">
                   <Switch
@@ -144,7 +171,7 @@ export function AlertConfig() {
                     size="sm"
                     onClick={() => handleDeleteAlert(alert.id)}
                   >
-                    Delete
+                    Excluir
                   </Button>
                 </div>
               </CardContent>
