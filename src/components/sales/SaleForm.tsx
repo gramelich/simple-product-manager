@@ -26,6 +26,8 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const [quantity, setQuantity] = useState<string>("");
   const [customer, setCustomer] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [downPayment, setDownPayment] = useState<string>(""); // Entrada
+  const [installments, setInstallments] = useState<string>(""); // Número de parcelas
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tenant } = useAuth();
@@ -66,15 +68,25 @@ export function SaleForm({ onClose }: SaleFormProps) {
     const selectedCustomer = customers.find(c => c.id === customer);
 
     // Verificando se todos os dados estão presentes
-    console.log("Produto selecionado:", selectedProduct);
-    console.log("Cliente selecionado:", selectedCustomer);
-    console.log("Quantidade:", quantity);
-    console.log("Forma de pagamento:", paymentMethod);
-
-    if (!product || !tenant?.id || !selectedCustomer || !paymentMethod) {
+    if (!product || !tenant?.id || !selectedCustomer || !paymentMethod || !downPayment || !installments) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const totalPrice = product.unit_price * Number(quantity);
+    const downPaymentValue = Number(downPayment);
+    const remainingValue = totalPrice - downPaymentValue;
+    const installmentValue = remainingValue / Number(installments);
+
+    // Validar se o valor da entrada não é maior que o valor total
+    if (downPaymentValue > totalPrice) {
+      toast({
+        title: "Erro",
+        description: "O valor da entrada não pode ser maior que o valor total.",
         variant: "destructive",
       });
       return;
@@ -87,6 +99,10 @@ export function SaleForm({ onClose }: SaleFormProps) {
       price: product.unit_price,
       customer_id: selectedCustomer.id,
       payment_method: paymentMethod,
+      down_payment: downPaymentValue,
+      remaining_value: remainingValue,
+      installments: Number(installments),
+      installment_value: installmentValue,
       tenant_id: tenant.id
     });
   };
@@ -155,6 +171,28 @@ export function SaleForm({ onClose }: SaleFormProps) {
                 <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Entrada</Label>
+            <Input
+              type="number"
+              min="0"
+              value={downPayment}
+              onChange={(e) => setDownPayment(e.target.value)}
+              placeholder="Valor da entrada"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Parcelas</Label>
+            <Input
+              type="number"
+              min="1"
+              value={installments}
+              onChange={(e) => setInstallments(e.target.value)}
+              placeholder="Número de parcelas"
+            />
           </div>
 
           <div className="flex justify-end space-x-4">
