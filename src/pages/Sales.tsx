@@ -1,52 +1,37 @@
 import { useState } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { ShoppingCart, Plus, Search } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { useQuery } from "@tanstack/react-query";
+import { salesService } from "@/services/salesService";
+import { SaleForm } from "@/components/sales/SaleForm";
+import { ShoppingCart, Plus, Search, Menu } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Sales() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
-  
-  const form = useForm({
-    defaultValues: {
-      product: "",
-      quantity: "",
-      price: "",
-      customer: "",
-    },
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(new Date().setDate(1)), // First day of current month
+    to: new Date(),
   });
 
-  const onSubmit = (data: any) => {
-    console.log(data);
-    toast({
-      title: "Venda registrada com sucesso!",
-      description: "A nova venda foi adicionada ao sistema.",
-    });
-    setIsDialogOpen(false);
-    form.reset();
-  };
+  const { data: sales = [] } = useQuery({
+    queryKey: ['sales'],
+    queryFn: salesService.getSales,
+  });
+
+  const filteredSales = sales.filter(sale => {
+    const matchesSearch = sale.customer.toLowerCase().includes(searchTerm.toLowerCase());
+    const saleDate = new Date(sale.sale_date);
+    const isInDateRange = saleDate >= dateRange.from && saleDate <= dateRange.to;
+    return matchesSearch && isInDateRange;
+  });
+
+  const totalSales = filteredSales.reduce((acc, sale) => acc + Number(sale.price) * sale.quantity, 0);
 
   return (
     <SidebarProvider>
@@ -55,8 +40,21 @@ export default function Sales() {
         <main className="flex-1 p-4 md:p-8">
           <div className="space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h1 className="text-3xl font-bold">Vendas</h1>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <SidebarTrigger className="md:hidden">
+                  <Menu className="h-6 w-6" />
+                </SidebarTrigger>
+                <h1 className="text-3xl font-bold">Vendas</h1>
+              </div>
               <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={(newRange) => {
+                    if (newRange?.from && newRange?.to) {
+                      setDateRange({ from: newRange.from, to: newRange.to });
+                    }
+                  }}
+                />
                 <div className="relative flex-1 md:flex-none">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input 
@@ -66,7 +64,7 @@ export default function Sales() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button onClick={() => setIsDialogOpen(true)}>
+                <Button onClick={() => setIsDialogOpen(true)} className="whitespace-nowrap">
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Venda
                 </Button>
@@ -77,94 +75,69 @@ export default function Sales() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Vendas do Dia
+                    Vendas do Período
                   </CardTitle>
                   <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">R$ 12.450,00</div>
+                  <div className="text-2xl font-bold">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(totalSales)}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    +8.2% em relação a ontem
+                    {format(dateRange.from, 'dd/MM/yyyy')} até {format(dateRange.to, 'dd/MM/yyyy')}
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Nova Venda</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="product"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Produto</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Nome do produto" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quantidade</FormLabel>
-                          <FormControl>
-                            <Input {...field} type="number" placeholder="0" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Preço</FormLabel>
-                          <FormControl>
-                            <Input {...field} type="number" step="0.01" placeholder="0.00" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="customer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cliente</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Nome do cliente" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <Button type="submit">Salvar</Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+            {isDialogOpen && <SaleForm onClose={() => setIsDialogOpen(false)} />}
 
             <Card>
               <CardHeader>
                 <CardTitle>Últimas Vendas</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Implementar tabela de vendas aqui
-                </p>
+                <div className="relative overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="px-4 py-2">Data</th>
+                        <th className="px-4 py-2">Cliente</th>
+                        <th className="px-4 py-2">Produto</th>
+                        <th className="px-4 py-2">Quantidade</th>
+                        <th className="px-4 py-2">Valor Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSales.map((sale) => (
+                        <tr key={sale.id} className="border-b">
+                          <td className="px-4 py-2">
+                            {format(new Date(sale.sale_date), 'dd/MM/yyyy HH:mm')}
+                          </td>
+                          <td className="px-4 py-2">{sale.customer}</td>
+                          <td className="px-4 py-2">{(sale.product as any)?.name}</td>
+                          <td className="px-4 py-2">{sale.quantity}</td>
+                          <td className="px-4 py-2">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(Number(sale.price) * sale.quantity)}
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredSales.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                            Nenhuma venda encontrada
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -79,6 +79,119 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          dollar_rate: number | null
+          engine_number: string | null
+          id: string
+          is_available: boolean | null
+          name: string
+          purchase_date: string
+          serial_number: string | null
+          sku: string
+          stock: number
+          tenant_id: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          dollar_rate?: number | null
+          engine_number?: string | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          purchase_date: string
+          serial_number?: string | null
+          sku: string
+          stock?: number
+          tenant_id?: string | null
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          dollar_rate?: number | null
+          engine_number?: string | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          purchase_date?: string
+          serial_number?: string | null
+          sku?: string
+          stock?: number
+          tenant_id?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string
+          customer: string
+          id: string
+          price: number
+          product_id: string | null
+          quantity: number
+          sale_date: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer: string
+          id?: string
+          price: number
+          product_id?: string | null
+          quantity: number
+          sale_date?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer?: string
+          id?: string
+          price?: number
+          product_id?: string | null
+          quantity?: number
+          sale_date?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           created_at: string

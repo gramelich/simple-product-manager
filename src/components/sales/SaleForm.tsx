@@ -14,6 +14,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productService } from "@/services/productService";
 import { salesService } from "@/services/salesService";
+import { X } from "lucide-react";
 
 interface SaleFormProps {
   onClose: () => void;
@@ -58,17 +59,20 @@ export function SaleForm({ onClose }: SaleFormProps) {
     if (!product) return;
     
     createSaleMutation.mutate({
-      productId: selectedProduct,
+      product_id: selectedProduct,
       quantity: Number(quantity),
-      price: product.unitPrice,
+      price: product.unit_price,
       customer,
     });
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="w-full md:max-w-2xl mx-auto">
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Nova Venda</CardTitle>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
