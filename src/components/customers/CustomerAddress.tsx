@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -10,6 +11,49 @@ export function CustomerAddress({
   formData,
   handleInputChange,
 }: CustomerAddressProps) {
+  const [isCepValid, setIsCepValid] = useState(true);
+
+  // Função para buscar o endereço com base no CEP
+  const fetchAddressByCep = async (cep: string) => {
+    // Remover qualquer formatação do CEP (ex: 12345-678 -> 12345678)
+    const formattedCep = cep.replace(/\D/g, "");
+    
+    if (formattedCep.length === 8) {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${formattedCep}/json/`);
+        const data = await response.json();
+        
+        if (!data.erro) {
+          // Preencher os campos com os dados do endereço
+          handleInputChange({
+            target: { name: "address.street", value: data.logradouro },
+          });
+          handleInputChange({
+            target: { name: "address.neighborhood", value: data.bairro },
+          });
+          handleInputChange({
+            target: { name: "address.city", value: data.localidade },
+          });
+          handleInputChange({
+            target: { name: "address.state", value: data.uf },
+          });
+          setIsCepValid(true);
+        } else {
+          setIsCepValid(false);
+        }
+      } catch (error) {
+        setIsCepValid(false);
+      }
+    }
+  };
+
+  // Função para tratar a mudança no campo de CEP
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    handleInputChange(e); // Atualiza o valor no formulário
+    fetchAddressByCep(value); // Chama a função de busca do endereço
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
@@ -83,9 +127,10 @@ export function CustomerAddress({
           id="address.zipCode"
           name="address.zipCode"
           value={formData.address.zipCode}
-          onChange={handleInputChange}
+          onChange={handleCepChange} // Modificado para chamar a função de busca
           required
         />
+        {!isCepValid && <p className="text-red-500">CEP inválido. Tente novamente.</p>} {/* Mensagem de erro */}
       </div>
     </div>
   );
