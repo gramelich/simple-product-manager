@@ -3,17 +3,22 @@ import { Package, Users, DollarSign, Target } from "lucide-react";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { addDays } from "date-fns";
 import { useState } from "react";
+import { DateRange } from "react-day-picker";
 
 export function DashboardMetrics() {
-  const [date, setDate] = useState({
+  const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(new Date().setDate(1)),
     to: new Date(),
   });
 
+  const handleDateChange = (newDate: DateRange | undefined) => {
+    setDate(newDate);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <DatePickerWithRange date={date} setDate={setDate} />
+        <DatePickerWithRange date={date} setDate={handleDateChange} />
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
