@@ -6,14 +6,14 @@ export interface Product {
   name: string;
   sku: string;
   stock: number;
-  unitPrice: number;
-  serialNumber: string;
-  engineNumber?: string;
-  purchaseDate: string;
-  dollarRate: number;
+  unit_price: number;
+  serial_number: string;
+  engine_number?: string;
+  purchase_date: string;
+  dollar_rate: number;
   category: string;
   description?: string;
-  isAvailable: boolean;
+  is_available: boolean;
 }
 
 export const productService = {
