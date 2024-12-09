@@ -30,9 +30,10 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
   const [customer, setCustomer] = useState<string>("");
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]); // Armazena formas de pagamento e valores
-  const [newPaymentMethod, setNewPaymentMethod] = useState<string>(""); // Forma de pagamento a ser adicionada
-  const [newPaymentAmount, setNewPaymentAmount] = useState<string>(""); // Valor da nova forma de pagamento
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [newPaymentMethod, setNewPaymentMethod] = useState<string>("");
+  const [newPaymentAmount, setNewPaymentAmount] = useState<string>("");
+  const [searchCustomer, setSearchCustomer] = useState<string>(""); // Estado para armazenar o filtro de busca de clientes
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tenant } = useAuth();
@@ -89,7 +90,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
     }
 
     setPaymentMethods([...paymentMethods, { method: newPaymentMethod, amount: Number(newPaymentAmount) }]);
-    setNewPaymentMethod(""); // Resetando os campos
+    setNewPaymentMethod(""); 
     setNewPaymentAmount("");
   };
 
@@ -98,7 +99,6 @@ export function SaleForm({ onClose }: SaleFormProps) {
     const product = products.find(p => p.id === selectedProduct);
     const selectedCustomer = customers.find(c => c.id === customer);
 
-    // Verificando se todos os dados estão presentes
     if (!product || !tenant?.id || !selectedCustomer || paymentMethods.length === 0) {
       toast({
         title: "Erro",
@@ -125,10 +125,15 @@ export function SaleForm({ onClose }: SaleFormProps) {
       quantity: Number(quantity),
       price: product.unit_price,
       customer_id: selectedCustomer.id,
-      payment_methods: paymentMethods, // Enviando todas as formas de pagamento
+      payment_methods: paymentMethods,
       tenant_id: tenant.id
     });
   };
+
+  // Filtra os clientes com base no nome (ou outro campo, conforme necessário)
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
+  );
 
   return (
     <Card className="w-full md:max-w-2xl mx-auto">
@@ -168,12 +173,18 @@ export function SaleForm({ onClose }: SaleFormProps) {
 
           <div className="space-y-2">
             <Label>Cliente</Label>
+            <Input
+              type="text"
+              value={searchCustomer}
+              onChange={(e) => setSearchCustomer(e.target.value)} // Atualiza o filtro de busca
+              placeholder="Buscar cliente"
+            />
             <Select value={customer} onValueChange={setCustomer}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um cliente" />
               </SelectTrigger>
               <SelectContent>
-                {customers.map((cust) => (
+                {filteredCustomers.map((cust) => (
                   <SelectItem key={cust.id} value={cust.id}>
                     {cust.name}
                   </SelectItem>
