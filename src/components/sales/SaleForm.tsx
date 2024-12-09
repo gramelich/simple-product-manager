@@ -65,6 +65,12 @@ export function SaleForm({ onClose }: SaleFormProps) {
     const product = products.find(p => p.id === selectedProduct);
     const selectedCustomer = customers.find(c => c.id === customer);
 
+    // Verificando se todos os dados estão presentes
+    console.log("Produto selecionado:", selectedProduct);
+    console.log("Cliente selecionado:", selectedCustomer);
+    console.log("Quantidade:", quantity);
+    console.log("Forma de pagamento:", paymentMethod);
+
     if (!product || !tenant?.id || !selectedCustomer || !paymentMethod) {
       toast({
         title: "Erro",
@@ -74,6 +80,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
       return;
     }
 
+    // Enviando a mutação com os dados corretos
     createSaleMutation.mutate({
       product_id: selectedProduct,
       quantity: Number(quantity),
