@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productService } from "@/services/productService";
 import { salesService } from "@/services/salesService";
 import { X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SaleFormProps {
   onClose: () => void;
@@ -26,6 +27,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const [customer, setCustomer] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { tenant } = useAuth();
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -56,13 +58,14 @@ export function SaleForm({ onClose }: SaleFormProps) {
     e.preventDefault();
     const product = products.find(p => p.id === selectedProduct);
     
-    if (!product) return;
+    if (!product || !tenant?.id) return;
     
     createSaleMutation.mutate({
       product_id: selectedProduct,
       quantity: Number(quantity),
-      price: product.unit_price,
+      price: product.unitPrice,
       customer,
+      tenant_id: tenant.id
     });
   };
 

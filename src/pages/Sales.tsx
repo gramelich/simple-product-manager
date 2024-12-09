@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { useQuery } from "@tanstack/react-query";
 import { salesService } from "@/services/salesService";
 import { SaleForm } from "@/components/sales/SaleForm";
@@ -47,9 +47,9 @@ export default function Sales() {
                 <h1 className="text-3xl font-bold">Vendas</h1>
               </div>
               <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                <DateRangePicker
-                  value={dateRange}
-                  onChange={(newRange) => {
+                <DatePickerWithRange
+                  date={dateRange}
+                  setDate={(newRange) => {
                     if (newRange?.from && newRange?.to) {
                       setDateRange({ from: newRange.from, to: newRange.to });
                     }
@@ -118,7 +118,7 @@ export default function Sales() {
                             {format(new Date(sale.sale_date), 'dd/MM/yyyy HH:mm')}
                           </td>
                           <td className="px-4 py-2">{sale.customer}</td>
-                          <td className="px-4 py-2">{(sale.product as any)?.name}</td>
+                          <td className="px-4 py-2">{sale.product_id}</td>
                           <td className="px-4 py-2">{sale.quantity}</td>
                           <td className="px-4 py-2">
                             {new Intl.NumberFormat('pt-BR', {
