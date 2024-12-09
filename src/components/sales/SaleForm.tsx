@@ -22,9 +22,10 @@ interface SaleFormProps {
 }
 
 export function SaleForm({ onClose }: SaleFormProps) {
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [customer, setCustomer] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [quantity, setQuantity] = useState<string>("");
+  const [customer, setCustomer] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tenant } = useAuth();
@@ -32,6 +33,11 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: productService.getProducts,
+  });
+
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers'],
+    queryFn: salesService.getCustomers, // Supondo que você tenha um serviço para pegar os clientes
   });
 
   const createSaleMutation = useMutation({
@@ -57,14 +63,23 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const product = products.find(p => p.id === selectedProduct);
-    
-    if (!product || !tenant?.id) return;
-    
+    const selectedCustomer = customers.find(c => c.id === customer);
+
+    if (!product || !tenant?.id || !selectedCustomer || !paymentMethod) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createSaleMutation.mutate({
       product_id: selectedProduct,
       quantity: Number(quantity),
       price: product.unit_price,
-      customer,
+      customer_id: selectedCustomer.id,
+      payment_method: paymentMethod,
       tenant_id: tenant.id
     });
   };
@@ -107,19 +122,40 @@ export function SaleForm({ onClose }: SaleFormProps) {
 
           <div className="space-y-2">
             <Label>Cliente</Label>
-            <Input
-              value={customer}
-              onChange={(e) => setCustomer(e.target.value)}
-              placeholder="Nome do cliente"
-            />
+            <Select value={customer} onValueChange={setCustomer}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.map((cust) => (
+                  <SelectItem key={cust.id} value={cust.id}>
+                    {cust.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Forma de Pagamento</Label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a forma de pagamento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Dinheiro</SelectItem>
+                <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end space-x-4">
             <Button variant="outline" onClick={onClose} type="button">
               Cancelar
             </Button>
-            <Button type="submit" disabled={createSaleMutation.isPending}>
-              {createSaleMutation.isPending ? "Salvando..." : "Registrar Venda"}
+            <Button type="submit" disabled={createSaleMutation.isLoading}>
+              {createSaleMutation.isLoading ? "Salvando..." : "Registrar Venda"}
             </Button>
           </div>
         </form>
