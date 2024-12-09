@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TelegramConfig } from "@/components/settings/TelegramConfig";
+import { AlertConfig } from "@/components/settings/AlertConfig";
 
 export default function Settings() {
   const [notifications, setNotifications] = useState(true);
@@ -39,6 +41,8 @@ export default function Settings() {
                 <TabsTrigger value="general">Geral</TabsTrigger>
                 <TabsTrigger value="notifications">Notificações</TabsTrigger>
                 <TabsTrigger value="security">Segurança</TabsTrigger>
+                <TabsTrigger value="telegram">Telegram</TabsTrigger>
+                <TabsTrigger value="alerts">Alertas</TabsTrigger>
               </TabsList>
 
               <TabsContent value="general" className="space-y-4">
@@ -149,6 +153,14 @@ export default function Settings() {
                     <Button>Atualizar Senha</Button>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="telegram">
+                <TelegramConfig />
+              </TabsContent>
+
+              <TabsContent value="alerts">
+                <AlertConfig />
               </TabsContent>
             </Tabs>
           </div>
