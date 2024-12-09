@@ -53,14 +53,14 @@ export function ProductForm({ onClose }: ProductFormProps) {
       name: formData.get('name') as string,
       sku: formData.get('sku') as string,
       stock: Number(formData.get('stock')),
-      unitPrice: Number(formData.get('price')),
-      serialNumber: formData.get('serialNumber') as string,
-      engineNumber: formData.get('engineNumber') as string,
-      purchaseDate: formData.get('purchaseDate') as string,
-      dollarRate: Number(formData.get('dollarRate')),
+      unit_price: Number(formData.get('price')),
+      serial_number: formData.get('serialNumber') as string,
+      engine_number: formData.get('engineNumber') as string,
+      purchase_date: formData.get('purchaseDate') as string,
+      dollar_rate: Number(formData.get('dollarRate')),
       category: formData.get('category') as string,
       description: formData.get('description') as string,
-      isAvailable,
+      is_available: isAvailable,
     });
   };
 

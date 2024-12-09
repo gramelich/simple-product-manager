@@ -23,7 +23,7 @@ export function ProductList() {
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    product.serial_number?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -59,10 +59,10 @@ export function ProductList() {
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL'
-                }).format(product.unitPrice)}
+                }).format(product.unit_price)}
               </TableCell>
-              <TableCell>{product.serialNumber}</TableCell>
-              <TableCell>{new Date(product.purchaseDate).toLocaleDateString()}</TableCell>
+              <TableCell>{product.serial_number}</TableCell>
+              <TableCell>{new Date(product.purchase_date).toLocaleDateString()}</TableCell>
             </TableRow>
           ))}
           {filteredProducts.length === 0 && (
