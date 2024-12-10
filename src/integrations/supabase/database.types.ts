@@ -1,4 +1,5 @@
 import { Json } from './types';
+import { Customer } from '@/types/customer.types';
 
 export interface CustomerAddress {
   street: string;
@@ -141,7 +142,7 @@ export type Tables = {
           name?: string
           purchase_date?: string
           serial_number?: string | null
-          sku?: string
+          sku: string
           stock?: number
           tenant_id?: string | null
           unit_price?: number
