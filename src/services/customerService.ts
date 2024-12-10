@@ -13,13 +13,21 @@ export const customerService = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(customer => ({
+      ...customer,
+      address: customer.address || null
+    })) as Customer[];
   },
 
   createCustomer: async (customer: CustomerInput): Promise<Customer> => {
     const { data, error } = await supabase
       .from('customers')
-      .insert([customer])
+      .insert([{
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        address: customer.address || null
+      }])
       .select()
       .single();
 
@@ -28,13 +36,19 @@ export const customerService = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      address: data.address || null
+    } as Customer;
   },
 
   updateCustomer: async (id: string, customer: Partial<CustomerInput>): Promise<Customer> => {
     const { data, error } = await supabase
       .from('customers')
-      .update(customer)
+      .update({
+        ...customer,
+        address: customer.address || null
+      })
       .eq('id', id)
       .select()
       .single();
@@ -44,6 +58,9 @@ export const customerService = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      address: data.address || null
+    } as Customer;
   }
 };

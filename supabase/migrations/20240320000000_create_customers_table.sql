@@ -1,38 +1,46 @@
-create table if not exists public.customers (
+-- Create customers table
+create table public.customers (
     id uuid default gen_random_uuid() primary key,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
     name text not null,
     email text,
     phone text,
-    address jsonb
+    address jsonb default null
 );
 
--- Habilitar RLS
+-- Enable RLS
 alter table public.customers enable row level security;
 
--- Criar políticas
-create policy "Enable read access for all users"
-    on customers for select
-    to authenticated
+-- Create policies
+create policy "Allow public read access"
+    on public.customers
+    for select
     using (true);
 
-create policy "Enable insert access for all users"
-    on customers for insert
-    to authenticated
-    with check (true);
+create policy "Allow authenticated insert access"
+    on public.customers
+    for insert
+    with check (auth.role() = 'authenticated');
 
-create policy "Enable update access for all users"
-    on customers for update
-    to authenticated
-    using (true);
+create policy "Allow authenticated update access"
+    on public.customers
+    for update
+    using (auth.role() = 'authenticated');
 
-create policy "Enable delete access for all users"
-    on customers for delete
-    to authenticated
-    using (true);
+-- Create function to automatically update updated_at
+create or replace function public.handle_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+    new.updated_at = timezone('utc'::text, now());
+    return new;
+end;
+$$;
 
--- Criar trigger para updated_at
-DROP TRIGGER IF EXISTS handle_updated_at ON public.customers;
-create trigger handle_updated_at before update on public.customers
-    for each row execute procedure moddatetime (updated_at);
+-- Create trigger for updated_at
+create trigger handle_customers_updated_at
+    before update on public.customers
+    for each row
+    execute function public.handle_updated_at();
