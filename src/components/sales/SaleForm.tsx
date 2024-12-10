@@ -14,9 +14,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productService } from "@/services/productService";
 import { salesService } from "@/services/salesService";
+import { customerService } from "@/services/customerService";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PaymentMethodForm } from "./PaymentMethodForm";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface PaymentMethod {
   method: string;
@@ -30,7 +43,8 @@ interface SaleFormProps {
 export function SaleForm({ onClose }: SaleFormProps) {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
-  const [customerName, setCustomerName] = useState<string>("");
+  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [searchCustomer, setSearchCustomer] = useState<string>("");
   const { toast } = useToast();
@@ -40,6 +54,11 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: productService.getProducts,
+  });
+
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers'],
+    queryFn: customerService.getCustomers,
   });
 
   const createSaleMutation = useMutation({
@@ -66,7 +85,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
     e.preventDefault();
     const product = products.find(p => p.id === selectedProduct);
 
-    if (!product || !tenant?.id || !customerName || paymentMethods.length === 0) {
+    if (!product || !tenant?.id || !selectedCustomer || paymentMethods.length === 0) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios.",
@@ -91,8 +110,9 @@ export function SaleForm({ onClose }: SaleFormProps) {
       product_id: selectedProduct,
       quantity: Number(quantity),
       price: product.unit_price,
-      customer: customerName,
-      tenant_id: tenant.id
+      customer: selectedCustomer,
+      tenant_id: tenant.id,
+      payment_methods: paymentMethods
     });
   };
 
@@ -140,12 +160,39 @@ export function SaleForm({ onClose }: SaleFormProps) {
 
           <div className="space-y-2">
             <Label>Cliente</Label>
-            <Input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Nome do cliente"
-            />
+            <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={customerSearchOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedCustomer
+                    ? customers.find((customer) => customer.name === selectedCustomer)?.name
+                    : "Selecione um cliente..."}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Buscar cliente..." />
+                  <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                  <CommandGroup>
+                    {customers.map((customer) => (
+                      <CommandItem
+                        key={customer.id}
+                        onSelect={() => {
+                          setSelectedCustomer(customer.name);
+                          setCustomerSearchOpen(false);
+                        }}
+                      >
+                        {customer.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {selectedProduct && quantity && Number(quantity) > 0 && (
@@ -180,7 +227,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
                   createSaleMutation.isPending || 
                   !selectedProduct || 
                   !quantity || 
-                  !customerName || 
+                  !selectedCustomer || 
                   paymentMethods.reduce((sum, p) => sum + p.amount, 0) !== totalPrice
                 }
               >
