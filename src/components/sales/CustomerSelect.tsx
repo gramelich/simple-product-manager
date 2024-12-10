@@ -29,6 +29,7 @@ export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerS
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ['customers'],
     queryFn: customerService.getCustomers,
+    staleTime: 60000, // Cache por 1 minuto para evitar múltiplas requisições
   });
 
   return (
@@ -43,7 +44,7 @@ export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerS
             className="w-full justify-between"
           >
             {selectedCustomer 
-              ? customers.find((customer) => customer.name === selectedCustomer)?.name 
+              ? customers.find((customer) => customer.id === selectedCustomer)?.name 
               : "Selecione um cliente..."}
           </Button>
         </PopoverTrigger>
@@ -57,16 +58,16 @@ export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerS
               {customers.map((customer) => (
                 <CommandItem
                   key={customer.id}
-                  value={customer.name}
+                  value={customer.id}
                   onSelect={() => {
-                    onSelectCustomer(customer.name);
+                    onSelectCustomer(customer.id); // Salva o ID do cliente
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedCustomer === customer.name ? "opacity-100" : "opacity-0"
+                      selectedCustomer === customer.id ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {customer.name}
