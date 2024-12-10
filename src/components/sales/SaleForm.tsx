@@ -30,7 +30,7 @@ interface SaleFormProps {
 export function SaleForm({ onClose }: SaleFormProps) {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
-  const [customer, setCustomer] = useState<string>("");
+  const [customerName, setCustomerName] = useState<string>("");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [searchCustomer, setSearchCustomer] = useState<string>("");
   const { toast } = useToast();
@@ -40,11 +40,6 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: productService.getProducts,
-  });
-
-  const { data: customers = [] } = useQuery({
-    queryKey: ['customers'],
-    queryFn: salesService.getCustomers,
   });
 
   const createSaleMutation = useMutation({
@@ -70,9 +65,8 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const product = products.find(p => p.id === selectedProduct);
-    const selectedCustomer = customers.find(c => c.id === customer);
 
-    if (!product || !tenant?.id || !selectedCustomer || paymentMethods.length === 0) {
+    if (!product || !tenant?.id || !customerName || paymentMethods.length === 0) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios.",
@@ -97,16 +91,10 @@ export function SaleForm({ onClose }: SaleFormProps) {
       product_id: selectedProduct,
       quantity: Number(quantity),
       price: product.unit_price,
-      customer_id: selectedCustomer.id,
-      payment_methods: paymentMethods,
+      customer: customerName,
       tenant_id: tenant.id
     });
   };
-
-  // Filtra os clientes com base no nome
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
-  );
 
   const selectedProductData = products.find(p => p.id === selectedProduct);
   const totalPrice = selectedProductData ? selectedProductData.unit_price * Number(quantity) : 0;
@@ -154,23 +142,10 @@ export function SaleForm({ onClose }: SaleFormProps) {
             <Label>Cliente</Label>
             <Input
               type="text"
-              value={searchCustomer}
-              onChange={(e) => setSearchCustomer(e.target.value)}
-              placeholder="Buscar cliente"
-              className="mb-2"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Nome do cliente"
             />
-            <Select value={customer} onValueChange={setCustomer}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCustomers.map((cust) => (
-                  <SelectItem key={cust.id} value={cust.id}>
-                    {cust.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {selectedProduct && quantity && Number(quantity) > 0 && (
@@ -205,7 +180,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
                   createSaleMutation.isPending || 
                   !selectedProduct || 
                   !quantity || 
-                  !customer || 
+                  !customerName || 
                   paymentMethods.reduce((sum, p) => sum + p.amount, 0) !== totalPrice
                 }
               >

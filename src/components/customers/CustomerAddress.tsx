@@ -23,16 +23,27 @@ export function CustomerAddress({
         
         if (!data.erro) {
           // Create synthetic events for each field
-          const createSyntheticEvent = (name: string, value: string) => ({
+          const createSyntheticEvent = (name: string, value: string): React.ChangeEvent<HTMLInputElement> => ({
             target: {
               name,
               value,
               getAttribute: () => name,
               setAttribute: () => {},
-              addEventListener: () => {},
-              dispatchEvent: () => true,
-              removeEventListener: () => {},
             } as unknown as HTMLInputElement,
+            currentTarget: {} as HTMLInputElement,
+            nativeEvent: new Event('change'),
+            bubbles: true,
+            cancelable: true,
+            defaultPrevented: false,
+            eventPhase: 0,
+            isTrusted: true,
+            preventDefault: () => {},
+            isDefaultPrevented: () => false,
+            stopPropagation: () => {},
+            isPropagationStopped: () => false,
+            persist: () => {},
+            timeStamp: Date.now(),
+            type: 'change'
           });
 
           handleInputChange(createSyntheticEvent("address.street", data.logradouro));
