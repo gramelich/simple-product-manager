@@ -13,9 +13,7 @@ export function CustomerAddress({
 }: CustomerAddressProps) {
   const [isCepValid, setIsCepValid] = useState(true);
 
-  // Função para buscar o endereço com base no CEP
   const fetchAddressByCep = async (cep: string) => {
-    // Remover qualquer formatação do CEP (ex: 12345-678 -> 12345678)
     const formattedCep = cep.replace(/\D/g, "");
     
     if (formattedCep.length === 8) {
@@ -24,19 +22,23 @@ export function CustomerAddress({
         const data = await response.json();
         
         if (!data.erro) {
-          // Preencher os campos com os dados do endereço
-          handleInputChange({
-            target: { name: "address.street", value: data.logradouro },
+          // Create synthetic events for each field
+          const createSyntheticEvent = (name: string, value: string) => ({
+            target: {
+              name,
+              value,
+              getAttribute: () => name,
+              setAttribute: () => {},
+              addEventListener: () => {},
+              dispatchEvent: () => true,
+              removeEventListener: () => {},
+            } as unknown as HTMLInputElement,
           });
-          handleInputChange({
-            target: { name: "address.neighborhood", value: data.bairro },
-          });
-          handleInputChange({
-            target: { name: "address.city", value: data.localidade },
-          });
-          handleInputChange({
-            target: { name: "address.state", value: data.uf },
-          });
+
+          handleInputChange(createSyntheticEvent("address.street", data.logradouro));
+          handleInputChange(createSyntheticEvent("address.neighborhood", data.bairro));
+          handleInputChange(createSyntheticEvent("address.city", data.localidade));
+          handleInputChange(createSyntheticEvent("address.state", data.uf));
           setIsCepValid(true);
         } else {
           setIsCepValid(false);
@@ -47,11 +49,10 @@ export function CustomerAddress({
     }
   };
 
-  // Função para tratar a mudança no campo de CEP
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    handleInputChange(e); // Atualiza o valor no formulário
-    fetchAddressByCep(value); // Chama a função de busca do endereço
+    handleInputChange(e);
+    fetchAddressByCep(value);
   };
 
   return (
@@ -127,10 +128,10 @@ export function CustomerAddress({
           id="address.zipCode"
           name="address.zipCode"
           value={formData.address.zipCode}
-          onChange={handleCepChange} // Modificado para chamar a função de busca
+          onChange={handleCepChange}
           required
         />
-        {!isCepValid && <p className="text-red-500">CEP inválido. Tente novamente.</p>} {/* Mensagem de erro */}
+        {!isCepValid && <p className="text-red-500">CEP inválido. Tente novamente.</p>}
       </div>
     </div>
   );
