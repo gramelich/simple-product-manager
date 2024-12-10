@@ -1,3 +1,5 @@
+import { Json } from './types';
+
 export type Customer = {
   id: string;
   created_at: string;
