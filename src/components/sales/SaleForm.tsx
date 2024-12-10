@@ -14,22 +14,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productService } from "@/services/productService";
 import { salesService } from "@/services/salesService";
-import { customerService } from "@/services/customerService";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PaymentMethodForm } from "./PaymentMethodForm";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { CustomerSelect } from "./CustomerSelect";
 
 interface PaymentMethod {
   method: string;
@@ -44,9 +32,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
-  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [searchCustomer, setSearchCustomer] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tenant } = useAuth();
@@ -54,11 +40,6 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: productService.getProducts,
-  });
-
-  const { data: customers = [] } = useQuery({
-    queryKey: ['customers'],
-    queryFn: customerService.getCustomers,
   });
 
   const createSaleMutation = useMutation({
@@ -158,42 +139,10 @@ export function SaleForm({ onClose }: SaleFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Cliente</Label>
-            <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={customerSearchOpen}
-                  className="w-full justify-between"
-                >
-                  {selectedCustomer
-                    ? customers.find((customer) => customer.name === selectedCustomer)?.name
-                    : "Selecione um cliente..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Buscar cliente..." />
-                  <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-                  <CommandGroup>
-                    {customers.map((customer) => (
-                      <CommandItem
-                        key={customer.id}
-                        onSelect={() => {
-                          setSelectedCustomer(customer.name);
-                          setCustomerSearchOpen(false);
-                        }}
-                      >
-                        {customer.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+          <CustomerSelect 
+            selectedCustomer={selectedCustomer}
+            onSelectCustomer={setSelectedCustomer}
+          />
 
           {selectedProduct && quantity && Number(quantity) > 0 && (
             <PaymentMethodForm
