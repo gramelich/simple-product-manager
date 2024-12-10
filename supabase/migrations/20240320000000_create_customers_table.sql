@@ -4,7 +4,8 @@ create table if not exists public.customers (
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
     name text not null,
     email text,
-    phone text
+    phone text,
+    address jsonb
 );
 
 -- Habilitar RLS

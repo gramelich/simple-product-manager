@@ -1,7 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
-
-type Customer = Database['public']['Tables']['customers']['Row'];
+import type { Customer, CustomerInput } from "@/types/customer.types";
 
 export const customerService = {
   getCustomers: async (): Promise<Customer[]> => {
@@ -18,7 +16,7 @@ export const customerService = {
     return data || [];
   },
 
-  createCustomer: async (customer: Omit<Customer, 'id' | 'created_at' | 'updated_at'>): Promise<Customer> => {
+  createCustomer: async (customer: CustomerInput): Promise<Customer> => {
     const { data, error } = await supabase
       .from('customers')
       .insert([customer])
@@ -33,7 +31,7 @@ export const customerService = {
     return data;
   },
 
-  updateCustomer: async (id: string, customer: Partial<Customer>): Promise<Customer> => {
+  updateCustomer: async (id: string, customer: Partial<CustomerInput>): Promise<Customer> => {
     const { data, error } = await supabase
       .from('customers')
       .update(customer)
