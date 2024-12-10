@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Customer, CustomerInput } from "@/types/customer.types";
+import type { CustomerAddress } from "@/types/customer.types";
 
 export const customerService = {
   getCustomers: async (): Promise<Customer[]> => {
@@ -14,9 +15,14 @@ export const customerService = {
     }
 
     return (data || []).map(customer => ({
-      ...customer,
-      address: customer.address || null
-    })) as Customer[];
+      id: customer.id,
+      created_at: customer.created_at,
+      updated_at: customer.updated_at,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address as CustomerAddress | null
+    }));
   },
 
   createCustomer: async (customer: CustomerInput): Promise<Customer> => {
@@ -26,7 +32,7 @@ export const customerService = {
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
-        address: customer.address || null
+        address: customer.address
       }])
       .select()
       .single();
@@ -37,9 +43,14 @@ export const customerService = {
     }
 
     return {
-      ...data,
-      address: data.address || null
-    } as Customer;
+      id: data.id,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address as CustomerAddress | null
+    };
   },
 
   updateCustomer: async (id: string, customer: Partial<CustomerInput>): Promise<Customer> => {
@@ -47,7 +58,7 @@ export const customerService = {
       .from('customers')
       .update({
         ...customer,
-        address: customer.address || null
+        address: customer.address
       })
       .eq('id', id)
       .select()
@@ -59,8 +70,13 @@ export const customerService = {
     }
 
     return {
-      ...data,
-      address: data.address || null
-    } as Customer;
+      id: data.id,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address as CustomerAddress | null
+    };
   }
 };

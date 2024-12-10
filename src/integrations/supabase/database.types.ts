@@ -6,7 +6,7 @@ export type Customer = {
   name: string;
   email: string | null;
   phone: string | null;
-  tenant_id: string | null;
+  address: Json | null;
   updated_at: string;
 }
 
