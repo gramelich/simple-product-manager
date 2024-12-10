@@ -1,6 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Customer, CustomerInput } from "@/types/customer.types";
 import type { CustomerAddress } from "@/types/customer.types";
+import type { DatabaseCustomer } from "@/integrations/supabase/database.types";
+
+const mapDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer): Customer => ({
+  id: dbCustomer.id,
+  created_at: dbCustomer.created_at,
+  updated_at: dbCustomer.updated_at,
+  name: dbCustomer.name,
+  email: dbCustomer.email,
+  phone: dbCustomer.phone,
+  address: dbCustomer.address as CustomerAddress | null
+});
 
 export const customerService = {
   getCustomers: async (): Promise<Customer[]> => {
@@ -14,15 +25,7 @@ export const customerService = {
       throw error;
     }
 
-    return (data || []).map(customer => ({
-      id: customer.id,
-      created_at: customer.created_at,
-      updated_at: customer.updated_at,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      address: customer.address as CustomerAddress | null
-    }));
+    return (data as DatabaseCustomer[]).map(mapDatabaseCustomerToCustomer);
   },
 
   createCustomer: async (customer: CustomerInput): Promise<Customer> => {
@@ -42,15 +45,7 @@ export const customerService = {
       throw error;
     }
 
-    return {
-      id: data.id,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address as CustomerAddress | null
-    };
+    return mapDatabaseCustomerToCustomer(data as DatabaseCustomer);
   },
 
   updateCustomer: async (id: string, customer: Partial<CustomerInput>): Promise<Customer> => {
@@ -69,14 +64,6 @@ export const customerService = {
       throw error;
     }
 
-    return {
-      id: data.id,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address as CustomerAddress | null
-    };
+    return mapDatabaseCustomerToCustomer(data as DatabaseCustomer);
   }
 };

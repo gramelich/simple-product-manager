@@ -10,14 +10,15 @@ export interface CustomerAddress {
   zipCode: string;
 }
 
-export type Customer = {
+export interface DatabaseCustomer {
   id: string;
   created_at: string;
+  updated_at: string;
   name: string;
   email: string | null;
   phone: string | null;
+  tenant_id: string | null;
   address: Json | null;
-  updated_at: string;
 }
 
 export type Tables = {
