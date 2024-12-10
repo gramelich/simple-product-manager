@@ -1,5 +1,15 @@
 import { Json } from './types';
 
+export interface CustomerAddress {
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
 export type Customer = {
   id: string;
   created_at: string;
