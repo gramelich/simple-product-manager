@@ -3,12 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { CustomerBasicInfo } from "./CustomerBasicInfo";
 import { CustomerAddress } from "./CustomerAddress";
+import { useAuth } from "@/hooks/useAuth";
+import { customerService } from "@/services/customerService";
+import { useToast } from "@/components/ui/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CustomerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer: any | null;
-  onSave: (customer: any) => void;
+  onSave?: (customer: any) => void;
 }
 
 export function CustomerDialog({ 
@@ -17,6 +21,10 @@ export function CustomerDialog({
   customer, 
   onSave 
 }: CustomerDialogProps) {
+  const { tenant } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState(customer || {
     name: "",
     email: "",
@@ -33,9 +41,39 @@ export function CustomerDialog({
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createCustomerMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (!tenant?.id) throw new Error("Tenant não encontrado");
+      return customerService.createCustomer({
+        ...data,
+        tenant_id: tenant.id
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast({
+        title: "Sucesso",
+        description: "Cliente cadastrado com sucesso",
+      });
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    try {
+      await createCustomerMutation.mutateAsync(formData);
+      if (onSave) onSave(formData);
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,8 +124,13 @@ export function CustomerDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit">
-              {customer ? "Salvar Alterações" : "Cadastrar Cliente"}
+            <Button 
+              type="submit"
+              disabled={createCustomerMutation.isPending}
+            >
+              {createCustomerMutation.isPending 
+                ? "Salvando..." 
+                : customer ? "Salvar Alterações" : "Cadastrar Cliente"}
             </Button>
           </div>
         </form>

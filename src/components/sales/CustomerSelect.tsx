@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CustomerSelectProps {
   selectedCustomer: string;
@@ -22,9 +24,9 @@ interface CustomerSelectProps {
 }
 
 export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerSelectProps) {
-  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [], isLoading } = useQuery({
     queryKey: ['customers'],
     queryFn: customerService.getCustomers,
   });
@@ -32,30 +34,41 @@ export function CustomerSelect({ selectedCustomer, onSelectCustomer }: CustomerS
   return (
     <div className="space-y-2">
       <Label>Cliente</Label>
-      <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
-            aria-expanded={customerSearchOpen}
+            aria-expanded={open}
             className="w-full justify-between"
           >
-            {selectedCustomer || "Selecione um cliente..."}
+            {selectedCustomer 
+              ? customers.find((customer) => customer.name === selectedCustomer)?.name 
+              : "Selecione um cliente..."}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0">
+        <PopoverContent className="w-[300px] p-0">
           <Command>
             <CommandInput placeholder="Buscar cliente..." />
-            <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+            <CommandEmpty>
+              {isLoading ? "Carregando..." : "Nenhum cliente encontrado."}
+            </CommandEmpty>
             <CommandGroup>
               {customers.map((customer) => (
                 <CommandItem
                   key={customer.id}
+                  value={customer.name}
                   onSelect={() => {
                     onSelectCustomer(customer.name);
-                    setCustomerSearchOpen(false);
+                    setOpen(false);
                   }}
                 >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedCustomer === customer.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
                   {customer.name}
                 </CommandItem>
               ))}
