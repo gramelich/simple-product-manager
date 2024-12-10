@@ -31,7 +31,7 @@ interface SaleFormProps {
 export function SaleForm({ onClose }: SaleFormProps) {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
-  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+  const [selectedCustomer, setSelectedCustomer] = useState<string>(""); // Agora usa o ID do cliente
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -91,7 +91,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
       product_id: selectedProduct,
       quantity: Number(quantity),
       price: product.unit_price,
-      customer: selectedCustomer,
+      customer_id: selectedCustomer, // Enviando o ID do cliente
       tenant_id: tenant.id,
       payment_methods: paymentMethods
     });
