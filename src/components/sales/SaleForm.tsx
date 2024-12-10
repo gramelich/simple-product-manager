@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,20 +11,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productService } from "@/services/productService";
 import { salesService } from "@/services/salesService";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
-interface SaleFormProps {
-  onClose: () => void;
-}
+import { PaymentMethodForm } from "./PaymentMethodForm";
 
 interface PaymentMethod {
   method: string;
   amount: number;
+}
+
+interface SaleFormProps {
+  onClose: () => void;
 }
 
 export function SaleForm({ onClose }: SaleFormProps) {
@@ -31,9 +32,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
   const [quantity, setQuantity] = useState<string>("");
   const [customer, setCustomer] = useState<string>("");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [newPaymentMethod, setNewPaymentMethod] = useState<string>("");
-  const [newPaymentAmount, setNewPaymentAmount] = useState<string>("");
-  const [searchCustomer, setSearchCustomer] = useState<string>(""); // Estado para armazenar o filtro de busca de clientes
+  const [searchCustomer, setSearchCustomer] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tenant } = useAuth();
@@ -68,32 +67,6 @@ export function SaleForm({ onClose }: SaleFormProps) {
     },
   });
 
-  const handleAddPaymentMethod = () => {
-    if (!newPaymentMethod || !newPaymentAmount || Number(newPaymentAmount) <= 0) {
-      toast({
-        title: "Erro",
-        description: "Selecione uma forma de pagamento válida e insira um valor válido.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const totalPaid = paymentMethods.reduce((sum, payment) => sum + payment.amount, 0);
-    const totalPrice = products.find(p => p.id === selectedProduct)?.unit_price || 0;
-    if (totalPaid + Number(newPaymentAmount) > totalPrice) {
-      toast({
-        title: "Erro",
-        description: "O valor total pago não pode ultrapassar o valor do produto.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setPaymentMethods([...paymentMethods, { method: newPaymentMethod, amount: Number(newPaymentAmount) }]);
-    setNewPaymentMethod(""); 
-    setNewPaymentAmount("");
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const product = products.find(p => p.id === selectedProduct);
@@ -111,7 +84,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
     const totalPrice = product.unit_price * Number(quantity);
     const totalPaid = paymentMethods.reduce((sum, payment) => sum + payment.amount, 0);
 
-    if (totalPaid < totalPrice) {
+    if (totalPaid !== totalPrice) {
       toast({
         title: "Erro",
         description: "O valor total pago deve ser igual ao valor do produto.",
@@ -130,10 +103,13 @@ export function SaleForm({ onClose }: SaleFormProps) {
     });
   };
 
-  // Filtra os clientes com base no nome (ou outro campo, conforme necessário)
+  // Filtra os clientes com base no nome
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
   );
+
+  const selectedProductData = products.find(p => p.id === selectedProduct);
+  const totalPrice = selectedProductData ? selectedProductData.unit_price * Number(quantity) : 0;
 
   return (
     <Card className="w-full md:max-w-2xl mx-auto">
@@ -144,7 +120,7 @@ export function SaleForm({ onClose }: SaleFormProps) {
         </Button>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label>Produto</Label>
             <Select value={selectedProduct} onValueChange={setSelectedProduct}>
@@ -154,7 +130,10 @@ export function SaleForm({ onClose }: SaleFormProps) {
               <SelectContent>
                 {products.map((product) => (
                   <SelectItem key={product.id} value={product.id}>
-                    {product.name} (Estoque: {product.stock})
+                    {product.name} (Estoque: {product.stock}) - {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(product.unit_price)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -176,8 +155,9 @@ export function SaleForm({ onClose }: SaleFormProps) {
             <Input
               type="text"
               value={searchCustomer}
-              onChange={(e) => setSearchCustomer(e.target.value)} // Atualiza o filtro de busca
+              onChange={(e) => setSearchCustomer(e.target.value)}
               placeholder="Buscar cliente"
+              className="mb-2"
             />
             <Select value={customer} onValueChange={setCustomer}>
               <SelectTrigger>
@@ -193,55 +173,45 @@ export function SaleForm({ onClose }: SaleFormProps) {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Forma de Pagamento</Label>
-            <Select value={newPaymentMethod} onValueChange={setNewPaymentMethod}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a forma de pagamento" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">Dinheiro</SelectItem>
-                <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
-                <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Valor</Label>
-            <Input
-              type="number"
-              min="0"
-              value={newPaymentAmount}
-              onChange={(e) => setNewPaymentAmount(e.target.value)}
-              placeholder="Valor da forma de pagamento"
+          {selectedProduct && quantity && Number(quantity) > 0 && (
+            <PaymentMethodForm
+              paymentMethods={paymentMethods}
+              onAddPayment={(payment) => setPaymentMethods([...paymentMethods, payment])}
+              totalPrice={totalPrice}
             />
-          </div>
+          )}
 
-          <div className="flex justify-start space-x-4">
-            <Button variant="outline" onClick={handleAddPaymentMethod}>
-              Adicionar Pagamento
-            </Button>
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <Label>Formas de Pagamento</Label>
-            <ul>
-              {paymentMethods.map((payment, index) => (
-                <li key={index}>
-                  {payment.method}: R${payment.amount.toFixed(2)}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="flex justify-end space-x-4">
-            <Button variant="outline" onClick={onClose} type="button">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={createSaleMutation.isLoading || paymentMethods.reduce((sum, payment) => sum + payment.amount, 0) !== products.find(p => p.id === selectedProduct)?.unit_price * Number(quantity)}>
-              {createSaleMutation.isLoading ? "Salvando..." : "Registrar Venda"}
-            </Button>
+          <div className="flex justify-between items-center pt-4 border-t">
+            <div>
+              <span className="text-sm text-muted-foreground">Total:</span>
+              <span className="ml-2 text-lg font-bold">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL'
+                }).format(totalPrice)}
+              </span>
+            </div>
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={
+                  createSaleMutation.isPending || 
+                  !selectedProduct || 
+                  !quantity || 
+                  !customer || 
+                  paymentMethods.reduce((sum, p) => sum + p.amount, 0) !== totalPrice
+                }
+              >
+                {createSaleMutation.isPending ? "Salvando..." : "Registrar Venda"}
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>
