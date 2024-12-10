@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { CustomerBasicInfo } from "./CustomerBasicInfo";
 import { CustomerAddress } from "./CustomerAddress";
-import { useAuth } from "@/hooks/useAuth";
 import { customerService } from "@/services/customerService";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,7 +20,6 @@ export function CustomerDialog({
   customer, 
   onSave 
 }: CustomerDialogProps) {
-  const { tenant } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -43,11 +41,7 @@ export function CustomerDialog({
 
   const createCustomerMutation = useMutation({
     mutationFn: async (data: any) => {
-      if (!tenant?.id) throw new Error("Tenant não encontrado");
-      return customerService.createCustomer({
-        ...data,
-        tenant_id: tenant.id
-      });
+      return customerService.createCustomer(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });

@@ -4,39 +4,34 @@ create table if not exists public.customers (
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
     name text not null,
     email text,
-    phone text,
-    tenant_id uuid references public.tenants(id) on delete cascade,
-    constraint customers_tenant_id_fkey foreign key (tenant_id) references tenants(id) on delete cascade
+    phone text
 );
 
--- Enable RLS
+-- Habilitar RLS
 alter table public.customers enable row level security;
 
--- Create policies
-create policy "Tenants can view their own customers"
-    on public.customers for select
-    using (auth.uid() in (
-        select user_id from tenant_users where tenant_id = customers.tenant_id
-    ));
+-- Criar políticas
+create policy "Enable read access for all users"
+    on customers for select
+    to authenticated
+    using (true);
 
-create policy "Tenants can insert their own customers"
-    on public.customers for insert
-    with check (auth.uid() in (
-        select user_id from tenant_users where tenant_id = customers.tenant_id
-    ));
+create policy "Enable insert access for all users"
+    on customers for insert
+    to authenticated
+    with check (true);
 
-create policy "Tenants can update their own customers"
-    on public.customers for update
-    using (auth.uid() in (
-        select user_id from tenant_users where tenant_id = customers.tenant_id
-    ));
+create policy "Enable update access for all users"
+    on customers for update
+    to authenticated
+    using (true);
 
-create policy "Tenants can delete their own customers"
-    on public.customers for delete
-    using (auth.uid() in (
-        select user_id from tenant_users where tenant_id = customers.tenant_id
-    ));
+create policy "Enable delete access for all users"
+    on customers for delete
+    to authenticated
+    using (true);
 
--- Create updated_at trigger
+-- Criar trigger para updated_at
+DROP TRIGGER IF EXISTS handle_updated_at ON public.customers;
 create trigger handle_updated_at before update on public.customers
     for each row execute procedure moddatetime (updated_at);
